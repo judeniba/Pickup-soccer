@@ -19,7 +19,7 @@ function setupCreateGameForm() {
         const location = document.getElementById('location').value;
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
-        const maxPlayers = parseInt(document.getElementById('maxPlayers').value);
+        const maxPlayers = parseInt(document.getElementById('maxPlayers').value) || 10;
 
         try {
             const response = await fetch(API_URL, {
@@ -105,7 +105,7 @@ function createGameCard(game) {
                         Join Game
                     </button>
                 </form>
-                <button class="leave-button" onclick="leaveGame(${game.id})">
+                <button class="leave-button" onclick="leaveGame(${game.id}, document.getElementById('playerName-${game.id}').value)">
                     Leave Game
                 </button>
             </div>
@@ -151,10 +151,11 @@ function setupGameActions(gameId) {
 }
 
 // Leave a game
-async function leaveGame(gameId) {
-    const playerName = prompt('Enter your name to leave the game:');
-    
-    if (!playerName) return;
+async function leaveGame(gameId, playerName) {
+    if (!playerName) {
+        showGameMessage(gameId, 'Please enter your name in the join field to leave', 'error');
+        return;
+    }
     
     try {
         const response = await fetch(`${API_URL}/${gameId}/leave`, {

@@ -24,12 +24,17 @@ app.post('/api/games', (req, res) => {
     return res.status(400).json({ error: 'Location, date, and time are required' });
   }
 
+  const parsedMaxPlayers = maxPlayers !== undefined ? maxPlayers : 10;
+  if (parsedMaxPlayers < 2 || parsedMaxPlayers > 30) {
+    return res.status(400).json({ error: 'Max players must be between 2 and 30' });
+  }
+
   const newGame = {
     id: gameIdCounter++,
     location,
     date,
     time,
-    maxPlayers: maxPlayers || 10,
+    maxPlayers: parsedMaxPlayers,
     players: [],
     createdAt: new Date().toISOString()
   };
