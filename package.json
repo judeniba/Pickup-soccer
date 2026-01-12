@@ -1,0 +1,21 @@
+{
+  "name": "pickup-soccer",
+  "version": "1.0.0",
+  "description": "A web application for organizing pickup soccer games",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "soccer",
+    "pickup",
+    "sports",
+    "games"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
