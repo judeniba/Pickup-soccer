@@ -47,7 +47,12 @@ function saveGames() {
 function loadGames() {
     const stored = localStorage.getItem('pickupSoccerGames');
     if (stored) {
-        games = JSON.parse(stored);
+        try {
+            games = JSON.parse(stored);
+        } catch (error) {
+            console.error('Failed to load games from localStorage:', error);
+            games = [];
+        }
     }
 }
 
@@ -69,9 +74,17 @@ function displayGames() {
             <p class="game-info"><strong>Date:</strong> ${formatDate(game.date)}</p>
             <p class="game-info"><strong>Time:</strong> ${formatTime(game.time)}</p>
             <p class="game-info"><strong>Players:</strong> ${game.currentPlayers} / ${game.maxPlayers}</p>
-            <button class="btn btn-success" onclick="joinGame(${game.id})">Join Game</button>
+            <button class="btn btn-success" data-game-id="${game.id}">Join Game</button>
         </div>
     `).join('');
+    
+    // Add event listeners to join buttons
+    gamesList.querySelectorAll('.btn-success').forEach(button => {
+        button.addEventListener('click', () => {
+            const gameId = parseInt(button.getAttribute('data-game-id'));
+            joinGame(gameId);
+        });
+    });
 }
 
 // Join a game
