@@ -19,7 +19,7 @@ function setupCreateGameForm() {
         const location = document.getElementById('location').value;
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
-        const maxPlayersValue = parseInt(document.getElementById('maxPlayers').value);
+        const maxPlayersValue = parseInt(document.getElementById('maxPlayers').value, 10);
         const maxPlayers = isNaN(maxPlayersValue) ? 10 : maxPlayersValue;
 
         try {
