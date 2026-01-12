@@ -24,7 +24,12 @@ app.post('/api/games', (req, res) => {
     return res.status(400).json({ error: 'Location, date, and time are required' });
   }
 
-  const parsedMaxPlayers = maxPlayers !== undefined ? maxPlayers : 10;
+  const parsedMaxPlayers = maxPlayers !== undefined ? parseInt(maxPlayers) : 10;
+  
+  if (isNaN(parsedMaxPlayers)) {
+    return res.status(400).json({ error: 'Max players must be a valid number' });
+  }
+  
   if (parsedMaxPlayers < 2 || parsedMaxPlayers > 30) {
     return res.status(400).json({ error: 'Max players must be between 2 and 30' });
   }
@@ -46,6 +51,10 @@ app.post('/api/games', (req, res) => {
 app.post('/api/games/:id/join', (req, res) => {
   const gameId = parseInt(req.params.id);
   const { playerName } = req.body;
+
+  if (isNaN(gameId)) {
+    return res.status(400).json({ error: 'Invalid game ID' });
+  }
 
   if (!playerName) {
     return res.status(400).json({ error: 'Player name is required' });
@@ -72,6 +81,10 @@ app.post('/api/games/:id/join', (req, res) => {
 app.delete('/api/games/:id/leave', (req, res) => {
   const gameId = parseInt(req.params.id);
   const { playerName } = req.body;
+
+  if (isNaN(gameId)) {
+    return res.status(400).json({ error: 'Invalid game ID' });
+  }
 
   if (!playerName) {
     return res.status(400).json({ error: 'Player name is required' });
