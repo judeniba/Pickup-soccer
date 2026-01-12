@@ -8,6 +8,9 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static('public'));
 
+// Constants
+const DEFAULT_MAX_PLAYERS = 10;
+
 // In-memory storage for games (in production, use a database)
 let games = [];
 let gameIdCounter = 1;
@@ -24,7 +27,7 @@ app.post('/api/games', (req, res) => {
     return res.status(400).json({ error: 'Location, date, and time are required' });
   }
 
-  const parsedMaxPlayers = maxPlayers !== undefined ? parseInt(maxPlayers) : 10;
+  const parsedMaxPlayers = maxPlayers !== undefined ? parseInt(maxPlayers) : DEFAULT_MAX_PLAYERS;
   
   if (isNaN(parsedMaxPlayers)) {
     return res.status(400).json({ error: 'Max players must be a valid number' });

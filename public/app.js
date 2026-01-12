@@ -19,7 +19,8 @@ function setupCreateGameForm() {
         const location = document.getElementById('location').value;
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
-        const maxPlayers = parseInt(document.getElementById('maxPlayers').value) || 10;
+        const maxPlayersValue = parseInt(document.getElementById('maxPlayers').value);
+        const maxPlayers = isNaN(maxPlayersValue) ? 10 : maxPlayersValue;
 
         try {
             const response = await fetch(API_URL, {
@@ -105,7 +106,7 @@ function createGameCard(game) {
                         Join Game
                     </button>
                 </form>
-                <button class="leave-button" onclick="leaveGame(${game.id}, document.getElementById('playerName-${game.id}').value)">
+                <button class="leave-button" data-game-id="${game.id}">
                     Leave Game
                 </button>
             </div>
@@ -117,6 +118,7 @@ function createGameCard(game) {
 // Setup join/leave actions for a game
 function setupGameActions(gameId) {
     const joinForm = document.getElementById(`joinForm-${gameId}`);
+    const leaveButton = document.querySelector(`button.leave-button[data-game-id="${gameId}"]`);
     
     if (joinForm) {
         joinForm.addEventListener('submit', async (e) => {
@@ -146,6 +148,13 @@ function setupGameActions(gameId) {
             } catch (error) {
                 showGameMessage(gameId, 'Network error. Please try again.', 'error');
             }
+        });
+    }
+    
+    if (leaveButton) {
+        leaveButton.addEventListener('click', () => {
+            const playerNameInput = document.getElementById(`playerName-${gameId}`);
+            leaveGame(gameId, playerNameInput.value);
         });
     }
 }
