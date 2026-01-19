@@ -21,6 +21,10 @@ COPY src/ ./src/
 COPY scripts/ ./scripts/
 COPY data/ ./data/
 COPY *.py ./
+COPY start.sh ./
+
+# Make startup script executable
+RUN chmod +x start.sh
 
 # Set environment variables
 ENV JAVA_HOME=/opt/java/openjdk
@@ -31,5 +35,5 @@ ENV PYTHONUNBUFFERED=1
 # Expose ports
 EXPOSE 8000 8501
 
-# Default command (can be overridden)
-CMD ["python3.11", "-c", "print('Pickup Soccer Container Ready! Use: docker-compose up')"]
+# Start API server with dynamic port support
+CMD ["./start.sh"]
