@@ -5,6 +5,8 @@ FastAPI-based REST API for accessing player and game data
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
 import sys
@@ -20,7 +22,7 @@ from team_balancer import TeamBalancer
 app = FastAPI(
     title="Pickup Soccer API",
     description="REST API for managing pickup soccer games, players, and analytics",
-    version="1.0.0"
+    version="2.0.0"
 )
 
 # CORS middleware
@@ -86,19 +88,23 @@ class BalancedTeams(BaseModel):
 
 # API Endpoints
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    """Root endpoint"""
-    return {
-        "message": "Welcome to Pickup Soccer API",
-        "version": "1.0.0",
-        "endpoints": {
-            "players": "/api/players",
-            "games": "/api/games",
-            "analytics": "/api/analytics",
-            "team_balance": "/api/teams/balance"
-        }
-    }
+    """Serve landing page"""
+    try:
+        with open("index.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return HTMLResponse(content="""
+            <html>
+                <head><title>Pickup Soccer API</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>⚽ Pickup Soccer API</h1>
+                    <p>Welcome to the Pickup Soccer REST API</p>
+                    <p><a href="/docs">📖 View API Documentation</a></p>
+                </body>
+            </html>
+        """)
 
 @app.get("/api/health")
 async def health_check():

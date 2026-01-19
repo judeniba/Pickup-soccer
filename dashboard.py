@@ -65,29 +65,171 @@ def load_games_data(_app):
     df = _app.games_df.toPandas() if _app.games_df else pd.DataFrame()
     return df
 
-def main():
-    # Header
-    st.markdown('<h1 class="main-header">⚽ Pickup Soccer Dashboard</h1>', unsafe_allow_html=True)
+def show_home():
+    """Landing page / Home"""
+    # Hero section
+    st.markdown("""
+        <div style='text-align: center; padding: 2rem 0;'>
+            <h1 style='font-size: 4rem; margin-bottom: 0;'>⚽</h1>
+            <h1 style='color: #1f77b4; font-size: 3rem; margin: 0;'>Pickup Soccer</h1>
+            <h3 style='color: #666; font-weight: 300; margin-top: 0.5rem;'>
+                Smart Team Management & Analytics Platform
+            </h3>
+        </div>
+    """, unsafe_allow_html=True)
     
+    # Introduction
+    st.markdown("---")
+    st.markdown("""
+        ### Welcome to Pickup Soccer! 🎉
+        
+        Your complete solution for managing pickup soccer games with **intelligent team balancing**, 
+        **advanced analytics**, and **real-time insights** powered by Apache Spark.
+    """)
+    
+    # Features in columns
+    st.markdown("### ✨ Key Features")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+            #### 👥 Player Management
+            - Track player statistics
+            - Monitor skill levels
+            - View performance history
+            - Position-based analytics
+        """)
+    
+    with col2:
+        st.markdown("""
+            #### ⚖️ Smart Team Balancing
+            - AI-powered team creation
+            - Skill-based balancing
+            - Position optimization
+            - Fair matchups guaranteed
+        """)
+    
+    with col3:
+        st.markdown("""
+            #### 📊 Advanced Analytics
+            - Real-time statistics
+            - Performance trends
+            - Game insights
+            - Predictive analysis
+        """)
+    
+    # Quick stats
+    st.markdown("---")
+    st.markdown("### 📈 Platform Overview")
+    
+    try:
+        app = init_app()
+        players_df = load_players_data(app)
+        games_df = load_games_data(app)
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("👥 Total Players", len(players_df))
+        with col2:
+            st.metric("⚽ Games Played", len(games_df))
+        with col3:
+            total_goals = games_df['team_a_score'].sum() + games_df['team_b_score'].sum()
+            st.metric("🎯 Total Goals", int(total_goals))
+        with col4:
+            avg_skill = players_df['skill_level'].mean()
+            st.metric("⭐ Avg Skill", f"{avg_skill:.1f}")
+    except Exception as e:
+        st.info("💡 Generate sample data to see statistics: `python scripts/generate_data.py`")
+    
+    # Technology stack
+    st.markdown("---")
+    st.markdown("### 🚀 Built With")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+            **Backend**
+            - ⚡ Apache Spark 4.1.1
+            - 🐍 Python 3.11
+            - 🔥 FastAPI REST API
+        """)
+    with col2:
+        st.markdown("""
+            **Frontend**
+            - 🎨 Streamlit
+            - 📊 Plotly Charts
+            - 🎯 Interactive UI
+        """)
+    with col3:
+        st.markdown("""
+            **Deployment**
+            - 🐳 Docker
+            - 🚂 Railway
+            - ☁️ Cloud Ready
+        """)
+    
+    # Call to action
+    st.markdown("---")
+    st.markdown("""
+        <div style='text-align: center; padding: 2rem 0;'>
+            <h3>Ready to Get Started? 👈</h3>
+            <p style='font-size: 1.2rem; color: #666;'>
+                Choose a page from the sidebar to explore players, games, analytics, and more!
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Footer
+    st.markdown("---")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("📖 [Documentation](https://github.com/judeniba/Pickup-soccer)")
+    with col2:
+        st.markdown("🔗 [API Docs](/docs)")
+    with col3:
+        st.markdown("💻 [GitHub](https://github.com/judeniba/Pickup-soccer)")
+
+def main():
     # Initialize app
     try:
         app = init_app()
         players_df = load_players_data(app)
         games_df = load_games_data(app)
+        data_loaded = True
     except Exception as e:
+        data_loaded = False
         st.error(f"Error loading data: {e}")
         st.info("Make sure sample data has been generated. Run: `python scripts/generate_data.py`")
-        return
     
     # Sidebar
-    st.sidebar.title("Navigation")
+    st.sidebar.title("🎯 Navigation")
     page = st.sidebar.radio(
         "Select Page",
-        ["📊 Overview", "👥 Players", "⚽ Games", "📈 Analytics", "⚖️ Team Balancer"]
+        ["🏠 Home", "📊 Overview", "👥 Players", "⚽ Games", "📈 Analytics", "⚖️ Team Balancer"]
     )
     
+    # Sidebar info
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 🚀 Quick Links")
+    st.sidebar.markdown("- [API Documentation](/docs)")
+    st.sidebar.markdown("- [GitHub Repository](https://github.com/judeniba/Pickup-soccer)")
+    st.sidebar.markdown("- [Deployment Guide](RAILWAY_DEPLOY.md)")
+    
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 📊 System Info")
+    st.sidebar.info(f"""
+        **Version**: 2.0.0  
+        **Engine**: Apache Spark 4.1.1  
+        **Status**: {'🟢 Online' if data_loaded else '🔴 Data Error'}
+    """)
+    
     # Page routing
-    if page == "📊 Overview":
+    if page == "🏠 Home":
+        show_home()
+    elif not data_loaded:
+        st.warning("⚠️ Cannot load pages without data. Please check the error above.")
+        return
+    elif page == "📊 Overview":
         show_overview(players_df, games_df)
     elif page == "👥 Players":
         show_players(players_df)
