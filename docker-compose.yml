@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # REST API Service
+  api:
+    build: .
+    container_name: pickup-soccer-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYSPARK_PYTHON=python3.11
+      - PYSPARK_DRIVER_PYTHON=python3.11
+    command: python3.11 -m uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - pickup-soccer
+
+  # Dashboard Service
+  dashboard:
+    build: .
+    container_name: pickup-soccer-dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYSPARK_PYTHON=python3.11
+      - PYSPARK_DRIVER_PYTHON=python3.11
+    command: python3.11 -m streamlit run dashboard.py --server.port=8501 --server.address=0.0.0.0
+    networks:
+      - pickup-soccer
+
+networks:
+  pickup-soccer:
+    driver: bridge

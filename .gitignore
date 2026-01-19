@@ -1,0 +1,62 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+venv311/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+derby.log
+
+# Data (keep structure, ignore generated data)
+data/players/*
+data/games/*
+!data/players/.gitkeep
+!data/games/.gitkeep
+data/sample/players/*
+data/sample/games/*
+data/sample/benchmark/*
+data/sample/benchmark_analytics/*
+data/sample/test_data/*
+data/sample/test_persistence/*
+!data/sample/players/.gitkeep
+!data/sample/games/.gitkeep
+
+# Spark
+metastore_db/
+spark-warehouse/
+
+# Test outputs
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Parquet files
+*.parquet
+_SUCCESS
