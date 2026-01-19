@@ -41,8 +41,23 @@ def get_app():
     """Get or create Spark application instance"""
     global soccer_app
     if soccer_app is None:
-        soccer_app = PickupSoccerApp(use_sample_data=True)
+        try:
+            soccer_app = PickupSoccerApp(use_sample_data=True)
+        except Exception as e:
+            print(f"Warning: Could not initialize Spark app: {e}")
+            # Return None and handle in endpoints
+            return None
     return soccer_app
+
+@app.on_event("startup")
+async def startup_event():
+    """Log startup information"""
+    print("=" * 60)
+    print("🚀 Pickup Soccer API Starting...")
+    print(f"Python version: {sys.version}")
+    print(f"Working directory: {os.getcwd()}")
+    print(f"JAVA_HOME: {os.getenv('JAVA_HOME', 'Not set')}")
+    print("=" * 60)
 
 # Pydantic models for API responses
 class Player(BaseModel):
