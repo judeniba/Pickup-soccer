@@ -100,6 +100,12 @@ async def root():
         }
     }
 
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint for Railway"""
+    return {"status": "healthy", "service": "pickup-soccer-api"}
+    }
+
 @app.get("/api/players", response_model=List[Player])
 async def get_players(
     position: Optional[str] = Query(None, description="Filter by position"),
