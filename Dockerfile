@@ -21,6 +21,7 @@ COPY src/ ./src/
 COPY scripts/ ./scripts/
 COPY data/ ./data/
 COPY *.py ./
+COPY *.html ./
 COPY start.sh ./
 
 # Make startup script executable
