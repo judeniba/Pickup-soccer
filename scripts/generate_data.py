@@ -76,7 +76,7 @@ def generate_coaches(num_coaches: int = 20) -> list:
     
     for i in range(num_coaches):
         coach_id = f"C{str(uuid.uuid4())[:8]}"
-        name = f"Coach {random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
+        name = f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
         
         coach = create_coach_record(
             coach_id=coach_id,

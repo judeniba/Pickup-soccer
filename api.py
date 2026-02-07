@@ -59,6 +59,23 @@ async def startup_event():
     print(f"JAVA_HOME: {os.getenv('JAVA_HOME', 'Not set')}")
     print("=" * 60)
 
+# Helper functions
+def map_game_to_dict(game_data: dict) -> dict:
+    """Map Spark game data to API response format"""
+    return {
+        "game_id": game_data['game_id'],
+        "date": str(game_data['date']),
+        "location": game_data['location'],
+        "weather": game_data['weather'],
+        "coach_a_id": game_data.get('coach_a_id'),
+        "coach_b_id": game_data.get('coach_b_id'),
+        "referee_ids": game_data.get('referee_ids', []),
+        "referee_payment_amount": game_data.get('referee_payment_amount'),
+        "team_a_score": game_data['team_a_score'],
+        "team_b_score": game_data['team_b_score'],
+        "duration": game_data['duration_minutes']
+    }
+
 # Pydantic models for API responses
 class Player(BaseModel):
     player_id: str
@@ -209,22 +226,7 @@ async def get_games(
         
         # Convert to pandas and limit
         games_df = df.limit(limit).toPandas()
-        games = []
-        for _, row in games_df.iterrows():
-            game = {
-                "game_id": row['game_id'],
-                "date": str(row['date']),
-                "location": row['location'],
-                "weather": row['weather'],
-                "coach_a_id": row.get('coach_a_id'),
-                "coach_b_id": row.get('coach_b_id'),
-                "referee_ids": row.get('referee_ids', []),
-                "referee_payment_amount": row.get('referee_payment_amount'),
-                "team_a_score": row['team_a_score'],
-                "team_b_score": row['team_b_score'],
-                "duration": row['duration_minutes']
-            }
-            games.append(game)
+        games = [map_game_to_dict(row) for _, row in games_df.iterrows()]
         return games
     
     except Exception as e:
@@ -240,21 +242,7 @@ async def get_game(game_id: str):
         if not game_row:
             raise HTTPException(status_code=404, detail="Game not found")
         
-        game_dict = game_row.asDict()
-        game = {
-            "game_id": game_dict['game_id'],
-            "date": str(game_dict['date']),
-            "location": game_dict['location'],
-            "weather": game_dict['weather'],
-            "coach_a_id": game_dict.get('coach_a_id'),
-            "coach_b_id": game_dict.get('coach_b_id'),
-            "referee_ids": game_dict.get('referee_ids', []),
-            "referee_payment_amount": game_dict.get('referee_payment_amount'),
-            "team_a_score": game_dict['team_a_score'],
-            "team_b_score": game_dict['team_b_score'],
-            "duration": game_dict['duration_minutes']
-        }
-        return game
+        return map_game_to_dict(game_row.asDict())
     
     except HTTPException:
         raise
