@@ -32,16 +32,24 @@ derby.log
 # Data (keep structure, ignore generated data)
 data/players/*
 data/games/*
+data/coaches/*
+data/referees/*
 !data/players/.gitkeep
 !data/games/.gitkeep
+!data/coaches/.gitkeep
+!data/referees/.gitkeep
 data/sample/players/*
 data/sample/games/*
+data/sample/coaches/*
+data/sample/referees/*
 data/sample/benchmark/*
 data/sample/benchmark_analytics/*
 data/sample/test_data/*
 data/sample/test_persistence/*
 !data/sample/players/.gitkeep
 !data/sample/games/.gitkeep
+!data/sample/coaches/.gitkeep
+!data/sample/referees/.gitkeep
 
 # Spark
 metastore_db/

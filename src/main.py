@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 
 from config import SPARK_CONFIG, PLAYERS_DIR, GAMES_DIR, OUTPUT_FORMAT
-from models import PlayerSchema, GameSchema
+from models import PlayerSchema, GameSchema, CoachSchema, RefereeSchema
 
 
 # Configure logging
@@ -74,6 +74,36 @@ class PickupSoccerApp:
             logger.warning(f"Could not load games: {e}")
             # Return empty DataFrame with schema
             return self.spark.createDataFrame([], GameSchema.get_schema())
+    
+    def load_coaches(self, path: str = None) -> DataFrame:
+        """Load coach data from storage"""
+        if path is None:
+            path = str(Path("data/sample/coaches") if self.use_sample_data else Path("data/coaches"))
+        logger.info(f"Loading coaches from: {path}")
+        
+        try:
+            df = self.spark.read.format(OUTPUT_FORMAT).load(path)
+            logger.info(f"Loaded {df.count()} coaches")
+            return df
+        except Exception as e:
+            logger.warning(f"Could not load coaches: {e}")
+            # Return empty DataFrame with schema
+            return self.spark.createDataFrame([], CoachSchema.get_schema())
+    
+    def load_referees(self, path: str = None) -> DataFrame:
+        """Load referee data from storage"""
+        if path is None:
+            path = str(Path("data/sample/referees") if self.use_sample_data else Path("data/referees"))
+        logger.info(f"Loading referees from: {path}")
+        
+        try:
+            df = self.spark.read.format(OUTPUT_FORMAT).load(path)
+            logger.info(f"Loaded {df.count()} referees")
+            return df
+        except Exception as e:
+            logger.warning(f"Could not load referees: {e}")
+            # Return empty DataFrame with schema
+            return self.spark.createDataFrame([], RefereeSchema.get_schema())
     
     def save_players(self, df: DataFrame, path: str = None, mode: str = "overwrite"):
         """Save player data to storage"""
@@ -183,6 +213,20 @@ class PickupSoccerApp:
         if not hasattr(self, '_games_df'):
             self._games_df = self.load_games()
         return self._games_df
+    
+    @property
+    def coaches_df(self) -> DataFrame:
+        """Lazy-load coaches DataFrame"""
+        if not hasattr(self, '_coaches_df'):
+            self._coaches_df = self.load_coaches()
+        return self._coaches_df
+    
+    @property
+    def referees_df(self) -> DataFrame:
+        """Lazy-load referees DataFrame"""
+        if not hasattr(self, '_referees_df'):
+            self._referees_df = self.load_referees()
+        return self._referees_df
     
     def stop(self):
         """Stop Spark session"""

@@ -59,6 +59,23 @@ async def startup_event():
     print(f"JAVA_HOME: {os.getenv('JAVA_HOME', 'Not set')}")
     print("=" * 60)
 
+# Helper functions
+def map_game_to_dict(game_data: dict) -> dict:
+    """Map Spark game data to API response format"""
+    return {
+        "game_id": game_data['game_id'],
+        "date": str(game_data['date']),
+        "location": game_data['location'],
+        "weather": game_data['weather'],
+        "coach_a_id": game_data.get('coach_a_id'),
+        "coach_b_id": game_data.get('coach_b_id'),
+        "referee_ids": game_data.get('referee_ids', []),
+        "referee_payment_amount": game_data.get('referee_payment_amount'),
+        "team_a_score": game_data['team_a_score'],
+        "team_b_score": game_data['team_b_score'],
+        "duration": game_data['duration_minutes']
+    }
+
 # Pydantic models for API responses
 class Player(BaseModel):
     player_id: str
@@ -70,11 +87,31 @@ class Player(BaseModel):
     total_goals: int
     total_assists: int
 
+class Coach(BaseModel):
+    coach_id: str
+    name: str
+    email: Optional[str]
+    specialization: Optional[str]
+    years_experience: int
+    active: bool
+
+class Referee(BaseModel):
+    referee_id: str
+    name: str
+    email: Optional[str]
+    certification_level: Optional[str]
+    years_experience: int
+    active: bool
+
 class Game(BaseModel):
     game_id: str
     date: str
     location: str
     weather: str
+    coach_a_id: Optional[str]
+    coach_b_id: Optional[str]
+    referee_ids: List[str]
+    referee_payment_amount: Optional[float]
     team_a_score: int
     team_b_score: int
     duration: int
@@ -188,7 +225,8 @@ async def get_games(
             df = df.filter(df.weather == weather)
         
         # Convert to pandas and limit
-        games = df.limit(limit).toPandas().to_dict('records')
+        games_df = df.limit(limit).toPandas()
+        games = [map_game_to_dict(row) for _, row in games_df.iterrows()]
         return games
     
     except Exception as e:
@@ -199,12 +237,12 @@ async def get_game(game_id: str):
     """Get a specific game by ID"""
     try:
         app = get_app()
-        game = app.games_df.filter(app.games_df.game_id == game_id).first()
+        game_row = app.games_df.filter(app.games_df.game_id == game_id).first()
         
-        if not game:
+        if not game_row:
             raise HTTPException(status_code=404, detail="Game not found")
         
-        return game.asDict()
+        return map_game_to_dict(game_row.asDict())
     
     except HTTPException:
         raise
@@ -325,6 +363,113 @@ async def get_summary_stats():
             "average_goals_per_game": float(avg_goals_per_game) if avg_goals_per_game else 0
         }
     
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/coaches", response_model=List[Coach])
+async def get_coaches(
+    specialization: Optional[str] = Query(None, description="Filter by specialization"),
+    min_experience: Optional[int] = Query(None, description="Minimum years of experience"),
+    limit: int = Query(50, description="Maximum number of coaches to return")
+):
+    """Get list of coaches with optional filters"""
+    try:
+        app = get_app()
+        df = app.coaches_df
+        
+        # Apply filters
+        if specialization:
+            df = df.filter(df.specialization == specialization)
+        if min_experience:
+            df = df.filter(df.years_experience >= min_experience)
+        
+        # Convert to pandas and limit
+        coaches = df.limit(limit).toPandas().to_dict('records')
+        return coaches
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/coaches/{coach_id}", response_model=Coach)
+async def get_coach(coach_id: str):
+    """Get a specific coach by ID"""
+    try:
+        app = get_app()
+        coach = app.coaches_df.filter(app.coaches_df.coach_id == coach_id).first()
+        
+        if not coach:
+            raise HTTPException(status_code=404, detail="Coach not found")
+        
+        return coach.asDict()
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/referees", response_model=List[Referee])
+async def get_referees(
+    certification: Optional[str] = Query(None, description="Filter by certification level"),
+    min_experience: Optional[int] = Query(None, description="Minimum years of experience"),
+    limit: int = Query(50, description="Maximum number of referees to return")
+):
+    """Get list of referees with optional filters"""
+    try:
+        app = get_app()
+        df = app.referees_df
+        
+        # Apply filters
+        if certification:
+            df = df.filter(df.certification_level == certification)
+        if min_experience:
+            df = df.filter(df.years_experience >= min_experience)
+        
+        # Convert to pandas and limit
+        referees = df.limit(limit).toPandas().to_dict('records')
+        return referees
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/referees/{referee_id}", response_model=Referee)
+async def get_referee(referee_id: str):
+    """Get a specific referee by ID"""
+    try:
+        app = get_app()
+        referee = app.referees_df.filter(app.referees_df.referee_id == referee_id).first()
+        
+        if not referee:
+            raise HTTPException(status_code=404, detail="Referee not found")
+        
+        return referee.asDict()
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/games/{game_id}/referees", response_model=List[Referee])
+async def get_game_referees(game_id: str):
+    """Get referees assigned to a specific game"""
+    try:
+        app = get_app()
+        
+        # Get the game
+        game = app.games_df.filter(app.games_df.game_id == game_id).first()
+        if not game:
+            raise HTTPException(status_code=404, detail="Game not found")
+        
+        # Get referee IDs
+        referee_ids = game.referee_ids
+        if not referee_ids:
+            return []
+        
+        # Get referee details
+        referees = app.referees_df.filter(app.referees_df.referee_id.isin(referee_ids)).toPandas().to_dict('records')
+        return referees
+    
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
