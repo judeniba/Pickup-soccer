@@ -208,7 +208,23 @@ async def get_games(
             df = df.filter(df.weather == weather)
         
         # Convert to pandas and limit
-        games = df.limit(limit).toPandas().to_dict('records')
+        games_df = df.limit(limit).toPandas()
+        games = []
+        for _, row in games_df.iterrows():
+            game = {
+                "game_id": row['game_id'],
+                "date": str(row['date']),
+                "location": row['location'],
+                "weather": row['weather'],
+                "coach_a_id": row.get('coach_a_id'),
+                "coach_b_id": row.get('coach_b_id'),
+                "referee_ids": row.get('referee_ids', []),
+                "referee_payment_amount": row.get('referee_payment_amount'),
+                "team_a_score": row['team_a_score'],
+                "team_b_score": row['team_b_score'],
+                "duration": row['duration_minutes']
+            }
+            games.append(game)
         return games
     
     except Exception as e:
@@ -219,12 +235,26 @@ async def get_game(game_id: str):
     """Get a specific game by ID"""
     try:
         app = get_app()
-        game = app.games_df.filter(app.games_df.game_id == game_id).first()
+        game_row = app.games_df.filter(app.games_df.game_id == game_id).first()
         
-        if not game:
+        if not game_row:
             raise HTTPException(status_code=404, detail="Game not found")
         
-        return game.asDict()
+        game_dict = game_row.asDict()
+        game = {
+            "game_id": game_dict['game_id'],
+            "date": str(game_dict['date']),
+            "location": game_dict['location'],
+            "weather": game_dict['weather'],
+            "coach_a_id": game_dict.get('coach_a_id'),
+            "coach_b_id": game_dict.get('coach_b_id'),
+            "referee_ids": game_dict.get('referee_ids', []),
+            "referee_payment_amount": game_dict.get('referee_payment_amount'),
+            "team_a_score": game_dict['team_a_score'],
+            "team_b_score": game_dict['team_b_score'],
+            "duration": game_dict['duration_minutes']
+        }
+        return game
     
     except HTTPException:
         raise

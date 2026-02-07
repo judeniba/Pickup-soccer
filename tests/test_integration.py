@@ -13,7 +13,10 @@ from datetime import datetime
 import logging
 
 from config import SPARK_CONFIG, SAMPLE_DIR
-from models import PlayerSchema, GameSchema, create_player_record, create_game_record
+from models import (
+    PlayerSchema, GameSchema, CoachSchema, RefereeSchema,
+    create_player_record, create_game_record, create_coach_record, create_referee_record
+)
 from main import PickupSoccerApp
 from analytics import SoccerAnalytics
 from team_balancer import TeamBalancer
@@ -86,10 +89,26 @@ class IntegrationTest:
         try:
             # Test GameSchema
             game_schema = GameSchema.get_schema()
-            assert len(game_schema.fields) == 11
+            assert len(game_schema.fields) == 15
             self._log_test("GameSchema creation", True)
         except Exception as e:
             self._log_test("GameSchema creation", False, str(e))
+        
+        try:
+            # Test CoachSchema
+            coach_schema = CoachSchema.get_schema()
+            assert len(coach_schema.fields) == 7
+            self._log_test("CoachSchema creation", True)
+        except Exception as e:
+            self._log_test("CoachSchema creation", False, str(e))
+        
+        try:
+            # Test RefereeSchema
+            referee_schema = RefereeSchema.get_schema()
+            assert len(referee_schema.fields) == 7
+            self._log_test("RefereeSchema creation", True)
+        except Exception as e:
+            self._log_test("RefereeSchema creation", False, str(e))
         
         try:
             # Test creating player record
@@ -107,9 +126,33 @@ class IntegrationTest:
             assert game["game_id"] == "G001"
             assert len(game["team_a_players"]) == 2
             assert len(game["team_b_players"]) == 2
+            assert "coach_a_id" in game
+            assert "coach_b_id" in game
+            assert "referee_ids" in game
+            assert "referee_payment_amount" in game
             self._log_test("Create game record", True)
         except Exception as e:
             self._log_test("Create game record", False, str(e))
+        
+        try:
+            # Test creating coach record
+            coach = create_coach_record("C001", "Test Coach")
+            assert coach["coach_id"] == "C001"
+            assert coach["name"] == "Test Coach"
+            assert "specialization" in coach
+            self._log_test("Create coach record", True)
+        except Exception as e:
+            self._log_test("Create coach record", False, str(e))
+        
+        try:
+            # Test creating referee record
+            referee = create_referee_record("R001", "Test Referee")
+            assert referee["referee_id"] == "R001"
+            assert referee["name"] == "Test Referee"
+            assert "certification_level" in referee
+            self._log_test("Create referee record", True)
+        except Exception as e:
+            self._log_test("Create referee record", False, str(e))
     
     def test_sample_data_creation(self):
         """Test sample data generation"""
