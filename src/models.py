@@ -32,6 +32,38 @@ class PlayerSchema:
         ])
 
 
+class CoachSchema:
+    """Schema for coach data"""
+    
+    @staticmethod
+    def get_schema() -> StructType:
+        return StructType([
+            StructField("coach_id", StringType(), False),
+            StructField("name", StringType(), False),
+            StructField("email", StringType(), True),
+            StructField("phone", StringType(), True),
+            StructField("specialization", StringType(), True),
+            StructField("years_experience", IntegerType(), True),
+            StructField("active", BooleanType(), False)
+        ])
+
+
+class RefereeSchema:
+    """Schema for referee data"""
+    
+    @staticmethod
+    def get_schema() -> StructType:
+        return StructType([
+            StructField("referee_id", StringType(), False),
+            StructField("name", StringType(), False),
+            StructField("email", StringType(), True),
+            StructField("phone", StringType(), True),
+            StructField("certification_level", StringType(), True),
+            StructField("years_experience", IntegerType(), True),
+            StructField("active", BooleanType(), False)
+        ])
+
+
 class GameSchema:
     """Schema for game data"""
     
@@ -43,6 +75,10 @@ class GameSchema:
             StructField("location", StringType(), False),
             StructField("team_a_players", ArrayType(StringType()), False),
             StructField("team_b_players", ArrayType(StringType()), False),
+            StructField("coach_a_id", StringType(), True),
+            StructField("coach_b_id", StringType(), True),
+            StructField("referee_ids", ArrayType(StringType()), False),
+            StructField("referee_payment_amount", DoubleType(), True),
             StructField("team_a_score", IntegerType(), False),
             StructField("team_b_score", IntegerType(), False),
             StructField("duration_minutes", IntegerType(), False),
@@ -118,6 +154,42 @@ def create_player_record(
     }
 
 
+def create_coach_record(
+    coach_id: str,
+    name: str,
+    email: str = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """Create a coach record dictionary"""
+    return {
+        "coach_id": coach_id,
+        "name": name,
+        "email": email or f"{name.lower().replace(' ', '.')}@coach.example.com",
+        "phone": kwargs.get("phone", None),
+        "specialization": kwargs.get("specialization", "General"),
+        "years_experience": kwargs.get("years_experience", 5),
+        "active": kwargs.get("active", True)
+    }
+
+
+def create_referee_record(
+    referee_id: str,
+    name: str,
+    email: str = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """Create a referee record dictionary"""
+    return {
+        "referee_id": referee_id,
+        "name": name,
+        "email": email or f"{name.lower().replace(' ', '.')}@referee.example.com",
+        "phone": kwargs.get("phone", None),
+        "certification_level": kwargs.get("certification_level", "Regional"),
+        "years_experience": kwargs.get("years_experience", 3),
+        "active": kwargs.get("active", True)
+    }
+
+
 def create_game_record(
     game_id: str,
     team_a_players: list,
@@ -132,6 +204,10 @@ def create_game_record(
         "location": location,
         "team_a_players": team_a_players,
         "team_b_players": team_b_players,
+        "coach_a_id": kwargs.get("coach_a_id", None),
+        "coach_b_id": kwargs.get("coach_b_id", None),
+        "referee_ids": kwargs.get("referee_ids", []),
+        "referee_payment_amount": kwargs.get("referee_payment_amount", 50.0),
         "team_a_score": kwargs.get("team_a_score", 0),
         "team_b_score": kwargs.get("team_b_score", 0),
         "duration_minutes": kwargs.get("duration_minutes", 90),
