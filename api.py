@@ -11,12 +11,16 @@ from pydantic import BaseModel
 from typing import List, Optional
 import sys
 import os
+import uuid
+from datetime import datetime
+from math import radians, cos, sin, asin, sqrt
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from main import PickupSoccerApp
 from team_balancer import TeamBalancer
+from models import create_player_record, PlayerSchema
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -79,6 +83,34 @@ class Game(BaseModel):
     team_b_score: int
     duration: int
 
+class NearbyGame(BaseModel):
+    game_id: str
+    date: str
+    location: str
+    latitude: Optional[float]
+    longitude: Optional[float]
+    distance_km: Optional[float]
+    weather: str
+    team_a_score: int
+    team_b_score: int
+
+class SignupRequest(BaseModel):
+    name: str
+    email: str
+    age: int
+    position: str
+    skill_level: int
+    latitude: float
+    longitude: float
+    preferred_foot: Optional[str] = "Right"
+
+class SignupResponse(BaseModel):
+    player_id: str
+    name: str
+    email: str
+    message: str
+    nearby_games: List[NearbyGame]
+
 class PlayerStats(BaseModel):
     player_id: str
     name: str
@@ -101,6 +133,23 @@ class BalancedTeams(BaseModel):
     team_b_avg_skill: float
     skill_difference: float
 
+# Helper functions
+def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Calculate the great circle distance in kilometers between two points 
+    on the earth (specified in decimal degrees)
+    """
+    # Convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    
+    # Haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    r = 6371  # Radius of earth in kilometers
+    return c * r
+
 # API Endpoints
 
 @app.get("/", response_class=HTMLResponse)
@@ -121,10 +170,145 @@ async def root():
             </html>
         """)
 
+@app.get("/signup.html", response_class=HTMLResponse)
+async def signup_page():
+    """Serve signup page"""
+    try:
+        with open("signup.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Signup page not found")
+
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint for Railway"""
     return {"status": "healthy", "service": "pickup-soccer-api"}
+
+@app.post("/api/users/signup", response_model=SignupResponse)
+async def signup_user(signup_data: SignupRequest):
+    """
+    Register a new user and return nearby available games
+    """
+    try:
+        app_instance = get_app()
+        if not app_instance:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        
+        # Generate new player ID
+        player_id = f"P{str(uuid.uuid4())[:8]}"
+        
+        # Create player record
+        player_record = create_player_record(
+            player_id=player_id,
+            name=signup_data.name,
+            email=signup_data.email,
+            skill_level=signup_data.skill_level,
+            position=signup_data.position,
+            age=signup_data.age,
+            preferred_foot=signup_data.preferred_foot,
+            latitude=signup_data.latitude,
+            longitude=signup_data.longitude,
+            joined_date=datetime.now(),
+            total_games=0,
+            total_goals=0,
+            total_assists=0
+        )
+        
+        # Save the new player (in a real app, you'd persist this)
+        # For now, we'll just create the player record without persisting
+        # In a production system, you'd want to save this to a database
+        
+        # Find nearby games (within 20km)
+        nearby_games = []
+        games_data = app_instance.games_df.filter(
+            (app_instance.games_df.latitude.isNotNull()) & 
+            (app_instance.games_df.longitude.isNotNull())
+        ).collect()
+        
+        for game in games_data:
+            if game.latitude and game.longitude:
+                distance = haversine_distance(
+                    signup_data.latitude, signup_data.longitude,
+                    game.latitude, game.longitude
+                )
+                
+                if distance <= 20:  # Within 20km
+                    nearby_games.append(NearbyGame(
+                        game_id=game.game_id,
+                        date=str(game.date),
+                        location=game.location,
+                        latitude=game.latitude,
+                        longitude=game.longitude,
+                        distance_km=round(distance, 2),
+                        weather=game.weather or "Unknown",
+                        team_a_score=game.team_a_score,
+                        team_b_score=game.team_b_score
+                    ))
+        
+        # Sort by distance
+        nearby_games.sort(key=lambda x: x.distance_km if x.distance_km else float('inf'))
+        
+        return SignupResponse(
+            player_id=player_id,
+            name=signup_data.name,
+            email=signup_data.email,
+            message=f"Welcome {signup_data.name}! You have been successfully registered.",
+            nearby_games=nearby_games[:10]  # Return top 10 nearest games
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Signup failed: {str(e)}")
+
+@app.get("/api/games/nearby")
+async def get_nearby_games(
+    latitude: float = Query(..., description="User's latitude"),
+    longitude: float = Query(..., description="User's longitude"),
+    radius_km: float = Query(20, description="Search radius in kilometers"),
+    limit: int = Query(10, description="Maximum number of games to return")
+):
+    """Get games near a specific location"""
+    try:
+        app_instance = get_app()
+        if not app_instance:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        
+        # Filter games with location data
+        games_data = app_instance.games_df.filter(
+            (app_instance.games_df.latitude.isNotNull()) & 
+            (app_instance.games_df.longitude.isNotNull())
+        ).collect()
+        
+        nearby_games = []
+        for game in games_data:
+            if game.latitude and game.longitude:
+                distance = haversine_distance(
+                    latitude, longitude,
+                    game.latitude, game.longitude
+                )
+                
+                if distance <= radius_km:
+                    nearby_games.append({
+                        "game_id": game.game_id,
+                        "date": str(game.date),
+                        "location": game.location,
+                        "latitude": game.latitude,
+                        "longitude": game.longitude,
+                        "distance_km": round(distance, 2),
+                        "weather": game.weather or "Unknown",
+                        "team_a_score": game.team_a_score,
+                        "team_b_score": game.team_b_score
+                    })
+        
+        # Sort by distance
+        nearby_games.sort(key=lambda x: x["distance_km"])
+        
+        return {
+            "count": len(nearby_games),
+            "games": nearby_games[:limit]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/players", response_model=List[Player])
 async def get_players(
