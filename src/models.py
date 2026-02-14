@@ -28,7 +28,9 @@ class PlayerSchema:
             StructField("joined_date", TimestampType(), False),
             StructField("total_games", IntegerType(), False),
             StructField("total_goals", IntegerType(), False),
-            StructField("total_assists", IntegerType(), False)
+            StructField("total_assists", IntegerType(), False),
+            StructField("latitude", DoubleType(), True),
+            StructField("longitude", DoubleType(), True)
         ])
 
 
@@ -41,6 +43,8 @@ class GameSchema:
             StructField("game_id", StringType(), False),
             StructField("date", TimestampType(), False),
             StructField("location", StringType(), False),
+            StructField("latitude", DoubleType(), True),
+            StructField("longitude", DoubleType(), True),
             StructField("team_a_players", ArrayType(StringType()), False),
             StructField("team_b_players", ArrayType(StringType()), False),
             StructField("team_a_score", IntegerType(), False),
@@ -114,7 +118,9 @@ def create_player_record(
         "joined_date": kwargs.get("joined_date", datetime.now()),
         "total_games": kwargs.get("total_games", 0),
         "total_goals": kwargs.get("total_goals", 0),
-        "total_assists": kwargs.get("total_assists", 0)
+        "total_assists": kwargs.get("total_assists", 0),
+        "latitude": kwargs.get("latitude"),
+        "longitude": kwargs.get("longitude")
     }
 
 
@@ -130,6 +136,8 @@ def create_game_record(
         "game_id": game_id,
         "date": kwargs.get("date", datetime.now()),
         "location": location,
+        "latitude": kwargs.get("latitude"),
+        "longitude": kwargs.get("longitude"),
         "team_a_players": team_a_players,
         "team_b_players": team_b_players,
         "team_a_score": kwargs.get("team_a_score", 0),

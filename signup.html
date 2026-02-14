@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Pickup Soccer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .games-list {
+            margin-top: 20px;
+        }
+
+        .game-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .game-item h3 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .game-item p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin-top: 10px;
+        }
+
+        .location-btn {
+            background: #28a745;
+            margin-top: 10px;
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        .location-btn:hover {
+            background: #218838;
+        }
+
+        @media (max-width: 768px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚽ Join Pickup Soccer</h1>
+        <p class="subtitle">Sign up and discover games near you!</p>
+
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" required placeholder="John Doe">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" required placeholder="john@example.com">
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="age">Age *</label>
+                    <input type="number" id="age" name="age" required min="16" max="100" placeholder="25">
+                </div>
+
+                <div class="form-group">
+                    <label for="skill_level">Skill Level (1-10) *</label>
+                    <input type="number" id="skill_level" name="skill_level" required min="1" max="10" placeholder="5">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="position">Position *</label>
+                    <select id="position" name="position" required>
+                        <option value="">Select Position</option>
+                        <option value="Goalkeeper">Goalkeeper</option>
+                        <option value="Defender">Defender</option>
+                        <option value="Midfielder">Midfielder</option>
+                        <option value="Forward">Forward</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="preferred_foot">Preferred Foot</label>
+                    <select id="preferred_foot" name="preferred_foot">
+                        <option value="Right">Right</option>
+                        <option value="Left">Left</option>
+                        <option value="Both">Both</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="latitude">Latitude *</label>
+                    <input type="number" id="latitude" name="latitude" required step="0.0001" placeholder="37.7749">
+                </div>
+
+                <div class="form-group">
+                    <label for="longitude">Longitude *</label>
+                    <input type="number" id="longitude" name="longitude" required step="0.0001" placeholder="-122.4194">
+                </div>
+            </div>
+
+            <button type="button" class="location-btn" onclick="getLocation()">📍 Use My Current Location</button>
+
+            <button type="submit" id="submitBtn">Sign Up</button>
+            <div class="loading" id="loading">Processing your registration...</div>
+        </form>
+
+        <div id="message" class="message"></div>
+
+        <div id="gamesSection" style="display: none;">
+            <h2 style="color: #667eea; margin-top: 30px;">🎯 Games Near You</h2>
+            <div id="gamesList" class="games-list"></div>
+        </div>
+
+        <div class="back-link">
+            <a href="/">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById('latitude').value = position.coords.latitude.toFixed(4);
+                        document.getElementById('longitude').value = position.coords.longitude.toFixed(4);
+                        showMessage('Location detected successfully!', 'success');
+                    },
+                    (error) => {
+                        showMessage('Unable to get location. Please enter manually.', 'error');
+                    }
+                );
+            } else {
+                showMessage('Geolocation is not supported by your browser.', 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                age: parseInt(document.getElementById('age').value),
+                skill_level: parseInt(document.getElementById('skill_level').value),
+                position: document.getElementById('position').value,
+                preferred_foot: document.getElementById('preferred_foot').value,
+                latitude: parseFloat(document.getElementById('latitude').value),
+                longitude: parseFloat(document.getElementById('longitude').value)
+            };
+            
+            try {
+                const response = await fetch('/api/users/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(data.message, 'success');
+                    
+                    // Display nearby games
+                    if (data.nearby_games && data.nearby_games.length > 0) {
+                        const gamesSection = document.getElementById('gamesSection');
+                        const gamesList = document.getElementById('gamesList');
+                        
+                        gamesList.innerHTML = '';
+                        data.nearby_games.forEach(game => {
+                            const gameItem = document.createElement('div');
+                            gameItem.className = 'game-item';
+                            gameItem.innerHTML = `
+                                <h3>${game.location}</h3>
+                                <p><strong>📍 Distance:</strong> ${game.distance_km} km away</p>
+                                <p><strong>📅 Date:</strong> ${new Date(game.date).toLocaleDateString()}</p>
+                                <p><strong>⚽ Score:</strong> ${game.team_a_score} - ${game.team_b_score}</p>
+                                <p><strong>🌤️ Weather:</strong> ${game.weather}</p>
+                            `;
+                            gamesList.appendChild(gameItem);
+                        });
+                        
+                        gamesSection.style.display = 'block';
+                    } else {
+                        showMessage('No games found in your area yet. Check back soon!', 'success');
+                    }
+                    
+                    // Reset form
+                    document.getElementById('signupForm').reset();
+                } else {
+                    showMessage(data.detail || 'Signup failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

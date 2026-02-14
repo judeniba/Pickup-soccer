@@ -35,14 +35,30 @@ LOCATIONS = ["Main Field", "North Park", "South Stadium", "East Arena", "West Gr
 WEATHER_CONDITIONS = ["Clear", "Cloudy", "Light Rain", "Sunny", "Partly Cloudy"]
 FIELD_CONDITIONS = ["Excellent", "Good", "Fair", "Wet"]
 
+# Location coordinates (example: San Francisco Bay Area)
+LOCATION_COORDS = {
+    "Main Field": (37.7749, -122.4194),
+    "North Park": (37.8044, -122.2712),
+    "South Stadium": (37.7089, -122.4621),
+    "East Arena": (37.7833, -122.2167),
+    "West Ground": (37.7577, -122.5076)
+}
+
 
 def generate_players(num_players: int = 100) -> list:
     """Generate sample player data"""
     players = []
     
+    # Base coordinates (San Francisco Bay Area)
+    base_lat, base_lon = 37.7749, -122.4194
+    
     for i in range(num_players):
         player_id = f"P{str(uuid.uuid4())[:8]}"
         name = f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
+        
+        # Generate random location near base coordinates (within ~20km radius)
+        lat_offset = random.uniform(-0.18, 0.18)  # ~20km
+        lon_offset = random.uniform(-0.18, 0.18)
         
         player = create_player_record(
             player_id=player_id,
@@ -57,7 +73,9 @@ def generate_players(num_players: int = 100) -> list:
             joined_date=datetime.now() - timedelta(days=random.randint(1, 1000)),
             total_games=random.randint(0, 200),
             total_goals=random.randint(0, 50),
-            total_assists=random.randint(0, 40)
+            total_assists=random.randint(0, 40),
+            latitude=base_lat + lat_offset,
+            longitude=base_lon + lon_offset
         )
         
         players.append(player)
@@ -78,11 +96,17 @@ def generate_games(player_ids: list, num_games: int = 50, team_size: int = 5) ->
         game_id = f"G{str(uuid.uuid4())[:8]}"
         game_date = datetime.now() - timedelta(days=random.randint(0, 365))
         
+        # Select location and get coordinates
+        location = random.choice(LOCATIONS)
+        lat, lon = LOCATION_COORDS[location]
+        
         game = create_game_record(
             game_id=game_id,
             team_a_players=team_a_players,
             team_b_players=team_b_players,
-            location=random.choice(LOCATIONS),
+            location=location,
+            latitude=lat,
+            longitude=lon,
             date=game_date,
             team_a_score=random.randint(0, 8),
             team_b_score=random.randint(0, 8),
