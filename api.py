@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import List, Optional
 import sys
 import os
@@ -96,7 +96,7 @@ class NearbyGame(BaseModel):
 
 class SignupRequest(BaseModel):
     name: str
-    email: EmailStr
+    email: str
     age: int
     position: str
     skill_level: int
@@ -214,10 +214,9 @@ async def signup_user(signup_data: SignupRequest):
             total_assists=0
         )
         
-        # Add to existing players DataFrame
-        from pyspark.sql import Row
-        new_player_row = app_instance.spark.createDataFrame([player_record], PlayerSchema.get_schema())
-        app_instance.players_df = app_instance.players_df.union(new_player_row)
+        # Save the new player (in a real app, you'd persist this)
+        # For now, we'll just create the player record without persisting
+        # In a production system, you'd want to save this to a database
         
         # Find nearby games (within 20km)
         nearby_games = []
